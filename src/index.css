@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.barnav{
+    
+    background-color: rgb(233, 230, 225);
+    padding: 10px 20px; /* Espacement intérieur */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Ombre */
+    position: relative; /* Nécessaire si vous voulez un effet d'ombre plus complexe */
+
+    font-weight: bold;
+}
