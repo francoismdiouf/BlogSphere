@@ -1,17 +1,22 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate(); // 🔥 pour la redirection
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Simulation de succès
-    console.log('Connexion réussie :', { email, password });
-    setMessage("✅ Connexion réussie !");
+    // Simulation de connexion réussie
+    if (email && password) {
+      alert("✅ Connexion réussie !");
+      navigate('/dashboard'); // Redirection après clic sur OK
+    } else {
+      setMessage("❌ Veuillez remplir tous les champs.");
+    }
   };
 
   return (
@@ -20,7 +25,7 @@ const Login = () => {
         <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Connexion</h2>
 
         {message && (
-          <div className="bg-green-100 text-green-700 px-4 py-2 rounded mb-4 text-sm">
+          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
             {message}
           </div>
         )}

@@ -38,6 +38,11 @@ const Home = () => {
             Créer un compte
           </button>
         </Link>
+        <Link to="/login">
+          <button className="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition">
+            Se connecter
+          </button>
+        </Link>
       </section>
     </div>
   );
