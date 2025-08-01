@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from '../API/authAPI'; // Chemin correct vers votre fichier
 
 const Register = () => {
   const [username, setUsername] = useState('');
@@ -9,13 +10,18 @@ const Register = () => {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simulation d'une inscription réussie
     if (username && email && password) {
-      alert('✅ Inscription réussie ! Cliquez sur OK pour vous connecter.');
-      navigate('/login');
+      try {
+        const userData = { username, email, password };
+        await registerUser(userData); // Appel à la fonction d'inscription
+        alert('✅ Inscription réussie ! Cliquez sur OK pour vous connecter.');
+        navigate('/login');
+      } catch (error) {
+        setError('❌ Erreur : ' + (error.response?.data?.message || 'Erreur lors de l\'inscription.'));
+      }
     } else {
       alert('❌ Erreur : veuillez remplir tous les champs.');
     }

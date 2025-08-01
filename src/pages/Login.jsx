@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { loginUser } from '../API/authAPI'; // Ajustez le chemin
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -7,13 +8,18 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const navigate = useNavigate(); // 🔥 pour la redirection
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simulation de connexion réussie
     if (email && password) {
-      alert("✅ Connexion réussie !");
-      navigate('/dashboard'); // Redirection après clic sur OK
+      try {
+        const userData = { email, password };
+        await loginUser(userData); // Appel à la fonction de connexion
+        alert("✅ Connexion réussie !");
+        navigate('/dashboard'); // Redirection après clic sur OK
+      } catch (error) {
+        setMessage('❌ Erreur : ' + (error.response?.data?.message || 'Erreur lors de la connexion.'));
+      }
     } else {
       setMessage("❌ Veuillez remplir tous les champs.");
     }

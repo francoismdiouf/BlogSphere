@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Importer useNavigate
 
 const userArticles = [
   {
@@ -18,13 +19,22 @@ const userArticles = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate(); // Initialiser useNavigate
+
+  const handleNewArticle = () => {
+    navigate('/editor'); // Redirection vers la page d'éditeur
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Mon Tableau de Bord</h1>
 
       <div className="flex justify-between items-center mb-6">
         <p className="text-gray-600">Vous avez publié {userArticles.length} article(s).</p>
-        <button className="bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition">
+        <button 
+          onClick={handleNewArticle} // Ajouter l'événement onClick
+          className="bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition"
+        >
           + Nouvel article
         </button>
       </div>

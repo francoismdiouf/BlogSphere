@@ -1,17 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { fetchUserProfile } from '../API/authAPI'; // Assurez-vous que le chemin est correct
 
 const Profile = () => {
-  const user = {
-    name: 'François Diouf',
-    bio: 'Développeur web passionné par l’écriture et les technologies modernes.',
-    email: 'jean.dupont@example.com',
-    joined: 'Avril 2024',
-    avatar: 'https://i.pravatar.cc/150?img=5',
-    articles: [
-      { id: 1, title: 'Créer un blog en React', date: '12 Juin 2025' },
-      { id: 2, title: 'Les tendances JavaScript 2025', date: '25 Mai 2025' },
-    ],
-  };
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const getUserProfile = async () => {
+      try {
+        const data = await fetchUserProfile();
+        setUser(data); // Assurez-vous que la structure de données correspond
+      } catch (err) {
+        setError('Erreur lors de la récupération des données.');
+        console.error(err); // Pour voir l'erreur dans la console
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getUserProfile();
+  }, []);
+
+  if (loading) return <div>Chargement...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
