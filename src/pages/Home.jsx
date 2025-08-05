@@ -11,7 +11,7 @@ const Home = () => {
         <p className="font-medium text-lg md:text-xl text-gray-700 max-w-2xl mx-auto mb-6">
           Partagez vos idées, tutoriels ou réflexions avec une communauté de lecteurs passionnés.
         </p>
-        <Link to="/editor">
+        <Link to="/login">
           <button className="bg-blue-600 text-white px-6 py-3 rounded-full text-lg hover:bg-blue-700 transition">
             ✍️ Commencer à écrire
           </button>
@@ -28,22 +28,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Call to action secondaire */}
-      <section className="py-16 px-6 bg-blue-50 text-center">
-        <h3 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-4">
-          Rejoignez une communauté de penseurs et créateurs !
-        </h3>
-        <Link to="/register">
-          <button className="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition">
-            Créer un compte
-          </button>
-        </Link>
-        <Link to="/login">
-          <button className="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition">
-            Se connecter
-          </button>
-        </Link>
-      </section>
+      
     </div>
   );
 };

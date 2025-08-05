@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { registerUser } from '../API/authAPI'; // Chemin correct vers votre fichier
+import axios from 'axios';
+import { registerUser } from '../API/authAPI';
+
+const API_URL_AUTH = 'http://localhost:5000/api/auth'; // Remplacez par l'URL de votre API
 
 const Register = () => {
   const [username, setUsername] = useState('');
@@ -12,18 +15,27 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(''); // Réinitialiser l'erreur
 
     if (username && email && password) {
       try {
         const userData = { username, email, password };
-        await registerUser(userData); // Appel à la fonction d'inscription
+
+        const response = await registerUser(userData);
+
+        console.log("Response :", response);
+        
+
+        // Afficher l'alerte et attendre que l'utilisateur clique sur OK
         alert('✅ Inscription réussie ! Cliquez sur OK pour vous connecter.');
+        // Rediriger vers la page de connexion
         navigate('/login');
-      } catch (error) {
-        setError('❌ Erreur : ' + (error.response?.data?.message || 'Erreur lors de l\'inscription.'));
+       
+      } catch (err) {
+        setError('❌ message : ' + (err.response?.data?.message || 'Erreur lors de l\'inscription.'));
       }
     } else {
-      alert('❌ Erreur : veuillez remplir tous les champs.');
+      setError('❌ message : veuillez remplir tous les champs.');
     }
   };
 
@@ -32,6 +44,7 @@ const Register = () => {
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow">
         <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Inscription</h2>
 
+        {/* Affiche les messages d'erreur, le cas échéant */}
         {error && (
           <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
             {error}

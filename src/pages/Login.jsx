@@ -1,27 +1,40 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser } from '../API/authAPI'; // Ajustez le chemin
+import axios from 'axios';
+import { loginUser } from '../API/authAPI';
+
+const API_URL_AUTH = 'http://localhost:5000/api/auth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const navigate = useNavigate(); // 🔥 pour la redirection
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
 
-    if (email && password) {
-      try {
-        const userData = { email, password };
-        await loginUser(userData); // Appel à la fonction de connexion
-        alert("✅ Connexion réussie !");
-        navigate('/dashboard'); // Redirection après clic sur OK
-      } catch (error) {
-        setMessage('❌ Erreur : ' + (error.response?.data?.message || 'Erreur lors de la connexion.'));
-      }
-    } else {
-      setMessage("❌ Veuillez remplir tous les champs.");
+    try {
+      const response = await loginUser({ email, password });
+
+      // localstorage
+      //token username, email
+      const { token, username } = response;
+      
+      console.log("🎯 Token extrait :", token);
+      console.log("👤 Utilisateur extrait :", username);
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(username));
+
+      console.log("Response", response);
+      
+      alert('✅ Connexion réussie !');
+      navigate('/dashboard'); // Redirection vers le tableau de bord
+      
+    } catch (err) {
+      setMessage('❌ ' + (err.response?.data?.message || 'Erreur lors de la connexion.'));
     }
   };
 
