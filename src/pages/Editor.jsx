@@ -1,59 +1,67 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Editor = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Envoyer les données à l’API backend
-    console.log('Titre:', title);
-    console.log('Contenu:', content);
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      alert("Vous devez être connecté pour publier un article.");
+      return navigate('/login');
+    }
+
+    try {
+      const response = await axios.post(
+        'http://localhost:5000/api/articles',
+        { title, content },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // ✅ Rediriger directement vers la page du nouvel article
+      navigate(`/articles/${response.data._id}`);
+    } catch (error) {
+      console.error('Erreur publication :', error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 mt-8">
-      <h1 className="text-3xl font-bold text-center text-blue-600 mb-6">Créer un nouvel article</h1>
-
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow-md rounded-xl p-6">
-        <div>
-          <label htmlFor="title" className="block text-lg font-semibold text-gray-800 mb-2">
-            Titre de l'article
-          </label>
-          <input
-            type="text"
-            id="title"
-            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Écris un titre percutant..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="content" className="block text-lg font-semibold text-gray-800 mb-2">
-            Contenu
-          </label>
-          <textarea
-            id="content"
-            rows={12}
-            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Exprime-toi ici..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-          ></textarea>
-        </div>
-
-        <div className="text-right">
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200"
-          >
-            Publier l'article
-          </button>
-        </div>
+    <div className="max-w-3xl mx-auto py-10">
+      <h1 className="text-2xl font-bold mb-4">Créer un nouvel article</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          placeholder="Titre de l'article"
+          className="w-full border p-2 rounded"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+        <textarea
+          placeholder="Contenu de l'article"
+          className="w-full border p-2 h-64 rounded"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          required
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Publier
+        </button>
       </form>
     </div>
   );

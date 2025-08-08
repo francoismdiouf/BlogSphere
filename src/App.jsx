@@ -14,15 +14,15 @@ function App() {
     return (
         <Router>
             <Routes>
-                {/* Routes sans navbar/footer */}
+                {/* Routes publiques */}
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
-                {/* Routes avec navbar/footer */}
+                {/* Routes avec Layout */}
                 <Route element={<Layout />}>
                     <Route path="/editor" element={<Editor />} />
-                    <Route path="/article" element={<Article />} />
+                    <Route path="/articles/:id" element={<Article />} /> {/* ✅ Paramètre ID */}
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                 </Route>

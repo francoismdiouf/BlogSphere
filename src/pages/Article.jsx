@@ -1,126 +1,179 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-
-const fakeArticle = {
-  id: "1",
-  title: "Comment bien utiliser BlogSphere",
-  author: "Jean Dupont",
-  date: "28 juillet 2025",
-  content: `
-    <p>Bienvenue sur BlogSphere ! Cette plateforme vous permet d'écrire, partager et lire des articles inspirants.</p>
-    <p>Voici comment tirer le meilleur parti de notre éditeur riche :</p>
-    <ul>
-      <li>Rédigez avec des titres, images, listes et citations.</li>
-      <li>Ajoutez du code pour vos tutoriels techniques.</li>
-      <li>Partagez vos réflexions avec la communauté.</li>
-    </ul>
-    <blockquote>Le blogging est un art qui demande passion et régularité.</blockquote>
-  `,
-  likes: 42,
-  views: 1234,
-  comments: [
-    { id: 1, author: "Marie", text: "Super article, très clair !" },
-    { id: 2, author: "Paul", text: "Merci pour ces conseils." },
-  ],
-};
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Article = () => {
   const { id } = useParams();
-
-  const article = fakeArticle;
-
-  const [likes, setLikes] = useState(article.likes);
-  const [comments, setComments] = useState(article.comments);
+  const navigate = useNavigate();
+  const [article, setArticle] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({ title: '', content: '' });
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
 
-  const handleLike = () => {
-    setLikes(likes + 1);
+  const token = localStorage.getItem('token');
+
+  const fetchArticle = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/articles/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setArticle(response.data);
+      setFormData({
+        title: response.data.title,
+        content: response.data.content,
+      });
+
+      // 🔹 Si le backend renvoie directement les commentaires dans `response.data.comments`
+      if (response.data.comments) {
+        setComments(response.data.comments);
+      } else {
+        // Sinon on va les chercher séparément
+        const resComments = await axios.get(`http://localhost:5000/api/articles/${id}/comments`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setComments(resComments.data);
+      }
+    } catch (error) {
+      console.error('Erreur chargement article :', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
+    }
   };
 
-  const handleAddComment = (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    fetchArticle();
+  }, [id]);
+
+  const handleLike = async () => {
+    try {
+      await axios.post(`http://localhost:5000/api/articles/${id}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchArticle();
+    } catch (error) {
+      console.error('Erreur like :', error);
+    }
+  };
+
+  const handleDislike = async () => {
+    try {
+      await axios.post(`http://localhost:5000/api/articles/${id}/dislike`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchArticle();
+    } catch (error) {
+      console.error('Erreur dislike :', error);
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await axios.put(`http://localhost:5000/api/articles/${id}`, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setEditMode(false);
+      fetchArticle();
+    } catch (error) {
+      console.error('Erreur mise à jour :', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`http://localhost:5000/api/articles/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Erreur suppression :', error);
+    }
+  };
+
+  const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
-    const commentToAdd = {
-      id: comments.length + 1,
-      author: "Anonyme",
-      text: newComment.trim(),
-    };
-    setComments([...comments, commentToAdd]);
-    setNewComment('');
+    try {
+      await axios.post(
+        `http://localhost:5000/api/articles/${id}/comments`,
+        { text: newComment },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setNewComment('');
+      fetchArticle(); // 🔄 recharge article + commentaires
+    } catch (error) {
+      console.error('Erreur ajout commentaire :', error);
+    }
   };
 
+  if (!article) return <p>Chargement...</p>;
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg my-10">
-      {/* Titre */}
-      <h1 className="text-4xl font-extrabold mb-4 text-gray-900">{article.title}</h1>
-
-      {/* Auteur & Date */}
-      <div className="text-sm text-gray-600 mb-6 flex justify-between items-center">
-        <span>
-          Par <strong className="text-blue-600">{article.author}</strong>
-        </span>
-        <span>{article.date}</span>
-      </div>
-
-      {/* Contenu formaté */}
-      <article
-        className="prose prose-blue max-w-none mb-8"
-        dangerouslySetInnerHTML={{ __html: article.content }}
-      />
-
-      {/* Likes & Vues */}
-      <div className="flex items-center space-x-6 mb-8">
-        <button
-          onClick={handleLike}
-          className="bg-blue-200 text-blue-900 px-4 py-2 rounded hover:bg-blue-300 transition font-semibold"
-        >
-          👍 Like ({likes})
-        </button>
-        <span className="text-gray-500 italic">{article.views} vues</span>
-      </div>
-
-      {/* Commentaires */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800">Commentaires ({comments.length})</h2>
-
-        <ul className="mb-6 space-y-4">
-          {comments.map((comment) => (
-            <li
-              key={comment.id}
-              className="border border-gray-200 rounded p-4 bg-gray-50 text-gray-700"
-            >
-              <p>
-                <strong className="text-blue-600">{comment.author} :</strong> {comment.text}
-              </p>
-            </li>
-          ))}
-        </ul>
-
-        {/* Formulaire nouveau commentaire */}
-        <form onSubmit={handleAddComment} className="space-y-3">
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Ajouter un commentaire..."
-            className="w-full border border-gray-300 rounded px-4 py-2 resize-y focus:ring-2 focus:ring-blue-300 focus:outline-none"
-            rows={3}
+    <div className="p-4 max-w-3xl mx-auto">
+      {editMode ? (
+        <>
+          <input
+            className="w-full border p-2 mb-2"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           />
-          <button
-            type="submit"
-            className="bg-green-200 text-green-900 px-5 py-2 rounded hover:bg-green-300 transition font-semibold"
-          >
-            Envoyer
-          </button>
-        </form>
-      </section>
+          <textarea
+            className="w-full border p-2 mb-4"
+            value={formData.content}
+            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+          />
+          <button onClick={handleUpdate} className="bg-blue-500 text-white px-4 py-2 rounded mr-2">Enregistrer</button>
+          <button onClick={() => setEditMode(false)} className="bg-gray-500 text-white px-4 py-2 rounded">Annuler</button>
+        </>
+      ) : (
+        <>
+          <h1 className="text-3xl font-bold mb-2">{article.title}</h1>
+          <p className="text-gray-700 mb-4">{article.content}</p>
+          <p className="text-sm text-gray-500 mb-4">
+            👍 {article.likes || 0} | 👎 {article.dislikes || 0}
+          </p>
 
-      {/* Lien retour */}
-      <div className="mt-10 text-center">
-        <Link to="/" className="text-blue-600 hover:underline font-semibold">
-          ← Retour à l’accueil
-        </Link>
-      </div>
+          <div className="flex gap-2 mb-6">
+            <button onClick={handleLike} className="bg-green-500 text-white px-3 py-1 rounded">👍 Like</button>
+            <button onClick={handleDislike} className="bg-yellow-500 text-white px-3 py-1 rounded">👎 Dislike</button>
+            <button onClick={() => setEditMode(true)} className="bg-blue-500 text-white px-3 py-1 rounded">✏️ Modifier</button>
+            <button onClick={handleDelete} className="bg-red-500 text-white px-3 py-1 rounded">🗑️ Supprimer</button>
+          </div>
+
+          {/* 🔹 Zone commentaires */}
+          <div className="border-t pt-4">
+            <h2 className="text-lg font-bold mb-2">Commentaires</h2>
+
+            <div className="mb-4">
+              {comments.length > 0 ? (
+                comments.map((c, index) => (
+                  <div key={index} className="border-b py-2">
+                    <p className="text-sm"><strong>{c.author || "Anonyme"}</strong> : {c.text}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">Aucun commentaire pour le moment.</p>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Écrire un commentaire..."
+                className="border p-2 flex-grow rounded"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+              <button onClick={handleAddComment} className="bg-blue-500 text-white px-4 py-2 rounded">
+                Publier
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

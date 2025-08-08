@@ -22,9 +22,6 @@ const Login = () => {
       //token username, email
       const { token, username } = response;
       
-      console.log("🎯 Token extrait :", token);
-      console.log("👤 Utilisateur extrait :", username);
-
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(username));
 
